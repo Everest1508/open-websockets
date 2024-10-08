@@ -24,8 +24,7 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i ec2-key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /ubuntu/
+            cd /home/ubuntu/open-websockets
             git pull origin main
-            
-            sudo systemctl restart nginx
+            ./restart_server
           EOF
