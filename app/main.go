@@ -11,6 +11,6 @@ func main() {
 
 	http.HandleFunc("/ws", wsHandler.HandleConnection)
 
-	log.Println("WebSocket server starting on :8080")
+	log.Println("WebSocket server starting on :80")
 	log.Fatal(http.ListenAndServe(":80", nil))
 }
