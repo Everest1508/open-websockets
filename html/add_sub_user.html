@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+  <div>
+    <div>
+      <label for="name">Name:</label>
+      <input type="text" id="name" placeholder="Enter your name">
+    </div>
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" placeholder="Enter your email">
+    </div>
+    <div>
+      <label for="phone">Phone:</label>
+      <input type="text" id="phone" placeholder="Enter your phone number">
+    </div>
+
+    <button id="connect-button">Connect</button>
+
+  </div>
+
+  <script>
+    let socket;
+    const connectButton = document.getElementById('connect-button');
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const phoneInput = document.getElementById('phone');
+
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const organization = urlParams.get('organization');
+    const wsURL = `ws://localhost:8080/ws?room=${organization}&role=publisher`;
+    socket = new WebSocket(wsURL);
+    socket.onopen = () => {
+    console.log('Connected to WebSocket');
+    };
+
+    socket.onmessage = (event) => {
+    addMessage(event.data);
+    };
+
+    socket.onclose = () => {
+    console.log('WebSocket connection closed');
+    };
+
+    socket.onerror = (error) => {
+    console.error('WebSocket error:', error);
+    };
+
+
+    connectButton.addEventListener('click', () => {
+      const name = nameInput.value;
+      const email = emailInput.value;
+      const phone = phoneInput.value;
+
+
+      const data = {
+        name: name,
+        email: email,
+        phone: phone,
+      };
+
+      if (socket.readyState === WebSocket.OPEN) {
+        const jsonData = JSON.stringify(data);
+        socket.send(jsonData);
+      }
+    });
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User List</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid black;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    #add-user-btn {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>User Information</h1>
+
+  <table id="user-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+      </tr>
+    </thead>
+    <tbody id="user-table">
+      <!-- Rows will be added here dynamically -->
+    </tbody>
+  </table>
+
+
+  <script>
+    // Function to load users from localStorage
+    const userTableBody = document.querySelector('#user-table tbody');
+    function addData() {
+    //   const users = JSON.parse("{'name':'ritesh','email':'ritesh@gmail.com','phone':'233253352'}") || [];
+    const users = JSON.parse('[{"name":"ritesh","email":"ritesh@gmail.com","phone":"233253352"}]') || [];
+
+
+      users.forEach(user => {
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+          <td>${user.name}</td>
+          <td>${user.email}</td>
+          <td>${user.phone}</td>
+        `;
+
+        userTableBody.appendChild(row);
+      });
+    }
+
+    function addFromWebsocket(data){
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+          <td>${data.name}</td>
+          <td>${data.email}</td>
+          <td>${data.phone}</td>
+        `;
+
+        userTableBody.appendChild(row);
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const organization = urlParams.get('organization');
+    const wsURL = `ws://localhost:8080/ws?room=${organization}&role=subscriber`;
+
+    socket = new WebSocket(wsURL);
+
+    socket.onopen = () => {
+    console.log('Connected to WebSocket');
+    };
+
+    socket.onmessage = (event) => {
+    const user = JSON.parse(event.data);
+    console.log(user);
+    addFromWebsocket(user);
+    };
+
+    socket.onclose = () => {
+    console.log('WebSocket connection closed');
+    };
+
+    socket.onerror = (error) => {
+    console.error('WebSocket error:', error);
+    };
+
+
+    // Load users when the page loads
+    document.addEventListener('DOMContentLoaded', addData);
+  </script>
+
+</body>
+</html>

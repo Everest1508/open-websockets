@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      padding: 20px;
+    }
+    #chat-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    #messages {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      height: 300px;
+      overflow-y: scroll;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    #input-container {
+      display: flex;
+    }
+    #message-input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #send-button {
+      padding: 10px;
+      border: none;
+      background-color: #28a745;
+      color: white;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    #send-button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="chat-container">
+    <h2>WebSocket Chat</h2>
+    <div id="messages"></div>
+
+    <!-- Only show the input if the role is publisher -->
+    <div id="input-container" style="display: none;">
+      <input type="text" id="message-input" placeholder="Type a message...">
+      <button id="send-button">Send</button>
+    </div>
+
+    <div>
+      <label for="room">Room ID: </label>
+      <input type="text" id="room" value="room1">
+    </div>
+    <div>
+      <label for="role">Role: </label>
+      <select id="role">
+        <option value="publisher">Publisher</option>
+        <option value="subscriber">Subscriber</option>
+      </select>
+    </div>
+    <button id="connect-button">Connect</button>
+  </div>
+
+  <script>
+    let socket;
+    const messagesDiv = document.getElementById('messages');
+    const inputContainer = document.getElementById('input-container');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const connectButton = document.getElementById('connect-button');
+    const roomInput = document.getElementById('room');
+    const roleSelect = document.getElementById('role');
+
+    function addMessage(message, sender) {
+      const msgDiv = document.createElement('div');
+      msgDiv.textContent = `${sender}: ${message}`;
+      messagesDiv.appendChild(msgDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to bottom
+    }
+
+    connectButton.addEventListener('click', () => {
+      const room = roomInput.value;
+      const role = roleSelect.value;
+      if (!room || !role) {
+        alert('Please enter a room and select a role.');
+        return;
+      }
+
+      // WebSocket connection
+      const wsURL = `ws://localhost:8080/ws?room=${room}&role=${role}`;
+      socket = new WebSocket(wsURL);
+
+      socket.onopen = () => {
+        console.log('Connected to WebSocket');
+        if (role === 'publisher') {
+          inputContainer.style.display = 'flex'; // Show input for publishers
+        } else {
+          inputContainer.style.display = 'none';
+        }
+      };
+
+      socket.onmessage = (event) => {
+        // const message = JSON.parse(event.data);
+        addMessage(event.data);
+      };
+
+      socket.onclose = () => {
+        console.log('WebSocket connection closed');
+      };
+
+      socket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+    });
+
+    sendButton.addEventListener('click', () => {
+      const message = messageInput.value;
+      if (message && socket.readyState === WebSocket.OPEN) {
+        socket.send(message); // Send message
+        messageInput.value = ''; // Clear the input field
+      }
+    });
+  </script>
+
+</body>
+</html>
